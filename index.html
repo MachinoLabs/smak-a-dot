@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>smak-a-dot™ | V9 Master Polish</title>
+    <title>Smak-a-Dot™ | V10 Turbo Blitz</title>
     <style>
         :root {
             --cyan: #00C3FF;
             --orange: #FF5E00;
             --white: #FFFFFF;
             --gray: #f0f0f0;
-            --pizza-gold: #d44137;
+            --pizza-gold: #D4AF37;
         }
 
         body, html {
@@ -22,12 +22,11 @@
             touch-action: manipulation;
         }
 
-        /* CUSTOMER NAME - CHANGE THIS FOR ANY BIZ */
         .pizza-watermark {
             position: fixed; inset: 0;
             display: flex; align-items: center; justify-content: center;
             font-size: 14vw; font-weight: 900; line-height: 0.8;
-            color: rgba(233, 9, 9, 0.184); text-align: center;
+            color: rgba(212, 175, 55, 0.18); text-align: center;
             pointer-events: none; z-index: 1; text-transform: uppercase;
         }
 
@@ -80,16 +79,19 @@
 
         .full-legend { 
             display: flex; justify-content: center; gap: 40px; 
-            margin: 20px 0; padding: 15px 30px; 
+            margin: 15px 0; padding: 15px 30px; 
             border: 2px dashed #ccc; border-radius: 20px; 
         }
         .legend-item { display: flex; flex-direction: column; align-items: center; font-size: 0.9rem; }
-        .dot-sample { width: 40px; height: 40px; border-radius: 50%; margin-bottom: 8px; }
+        .dot-sample { width: 35px; height: 35px; border-radius: 50%; margin-bottom: 8px; }
 
-        .p-btn { padding: 12px 20px; border: 3px solid var(--cyan); background: none; font-size: 1.1rem; font-weight: 900; cursor: pointer; border-radius: 8px; margin: 5px; }
-        .p-btn.active { background: var(--cyan); color: white; }
+        .p-btn, .l-btn { padding: 10px 18px; border: 3px solid var(--cyan); background: none; font-size: 1rem; font-weight: 900; cursor: pointer; border-radius: 8px; margin: 3px; }
+        .p-btn.active, .l-btn.active { background: var(--cyan); color: white; }
+        
+        /* Level Specific Style */
+        .l-btn-turbo.active { background: var(--orange); border-color: var(--orange); }
 
-        .start-btn { background: var(--orange); color: white; border: none; padding: 20px 60px; font-size: 2.2rem; font-weight: 900; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 0 #b34200; }
+        .start-btn { background: var(--orange); color: white; border: none; padding: 20px 60px; font-size: 2.2rem; font-weight: 900; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 0 #b34200; margin-top: 15px;}
         .start-btn:active { transform: translateY(3px); box-shadow: none; }
 
         .footer { padding: 10px; text-align: center; border-top: 1px solid #ddd; font-size: 12px; z-index: 10; background: white;}
@@ -119,22 +121,35 @@
 
     <div id="overlay">
         <h1 style="font-size: 3.5rem; margin: 0; color: var(--orange);">smak-a-dot™</h1>
-        <div style="color: var(--cyan); font-weight: 900; font-size: 1.5rem; margin-bottom: 15px;">HI-SCORE: <span id="hi-score-val">0</span></div>
         
         <div id="lobby-controls">
             <div class="full-legend">
                 <div class="legend-item"><div class="dot-sample tier-cyan"></div><span style="font-weight:900;">1 PT</span></div>
                 <div class="legend-item"><div class="dot-sample tier-orange"></div><span style="font-weight:900;">5 PTS</span></div>
-                <div class="legend-item"><div class="dot-sample tier-white" style="border:3px solid var(--orange)"></div><span style="font-weight:900;">10 PTS</span></div>
+                <div class="legend-item"><div class="dot-sample tier-white" style="border:3px solid var(--orange)"></div><span style="font-weight:900;">10 PT</span></div>
             </div>
-            <p style="font-weight: 900; margin: 10px;">HOW MANY PLAYERS?</p>
-            <div class="player-select">
-                <button class="p-btn active" onclick="setPlayers(1)">1</button>
-                <button class="p-btn" onclick="setPlayers(2)">2</button>
-                <button class="p-btn" onclick="setPlayers(3)">3</button>
-                <button class="p-btn" onclick="setPlayers(4)">4</button>
+
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <div>
+                    <p style="font-weight: 900; margin: 5px;">PLAYERS</p>
+                    <div class="player-select">
+                        <button class="p-btn active" onclick="setPlayers(1)">1</button>
+                        <button class="p-btn" onclick="setPlayers(2)">2</button>
+                        <button class="p-btn" onclick="setPlayers(3)">3</button>
+                        <button class="p-btn" onclick="setPlayers(4)">4</button>
+                    </div>
+                </div>
+                <div>
+                    <p style="font-weight: 900; margin: 5px;">LEVEL</p>
+                    <div class="level-select">
+                        <button class="l-btn active" onclick="setLevel('kids')">KIDS</button>
+                        <button class="l-btn l-btn-turbo" onclick="setLevel('turbo')">TURBO BLITZ</button>
+                    </div>
+                </div>
             </div>
+
             <button class="start-btn" id="start-btn">GO!</button>
+            <div style="color: var(--cyan); font-weight: 900; font-size: 1.2rem; margin-top: 15px;">HI-SCORE: <span id="hi-score-val">0</span></div>
         </div>
 
         <div id="results" style="display:none;">
@@ -174,7 +189,7 @@
             osc.stop(audioCtx.currentTime + dur);
         }
 
-        let state = { numPlayers: 1, currentPlayer: 1, scores: [], timeLeft: 30, gameActive: false, isPaused: false, spawnRate: 800 };
+        let state = { numPlayers: 1, currentPlayer: 1, scores: [], timeLeft: 30, gameActive: false, isPaused: false, spawnRate: 800, level: 'kids' };
         let timerInterval = null, spawnTimeout = null;
 
         let highScore = localStorage.getItem('smak_hi_score') || 0;
@@ -183,6 +198,14 @@
         function setPlayers(n) {
             state.numPlayers = n;
             document.querySelectorAll('.p-btn').forEach((btn, i) => btn.classList.toggle('active', i + 1 === n));
+            unlockAudio();
+        }
+
+        function setLevel(l) {
+            state.level = l;
+            document.querySelectorAll('.l-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(l));
+            });
             unlockAudio();
         }
 
@@ -203,12 +226,19 @@
         function startGame() {
             unlockAudio();
             stopAllProcesses();
-            state.gameActive = true; state.isPaused = false; state.timeLeft = 30; state.spawnRate = 800;
+            state.gameActive = true; 
+            state.isPaused = false; 
+            state.timeLeft = 30; 
+            
+            // Level Balancing
+            state.spawnRate = (state.level === 'turbo') ? 500 : 800;
+            
             document.getElementById('overlay').style.display = 'none';
             document.getElementById('cur-p-display').textContent = state.currentPlayer;
             document.getElementById('score').textContent = "0";
             document.getElementById('time').textContent = "30";
-            startTimer(); spawnLoop();
+            startTimer(); 
+            spawnLoop();
         }
 
         function startTimer() {
@@ -216,7 +246,13 @@
                 if (!state.isPaused && state.gameActive) {
                     state.timeLeft--;
                     document.getElementById('time').textContent = state.timeLeft;
-                    if (state.timeLeft % 5 === 0) state.spawnRate *= 0.85;
+                    
+                    // Ramping
+                    if (state.timeLeft % 5 === 0) {
+                        const multiplier = (state.level === 'turbo') ? 0.70 : 0.85;
+                        state.spawnRate *= multiplier;
+                    }
+                    
                     if (state.timeLeft <= 0) endTurn();
                 }
             }, 1000);
@@ -224,25 +260,41 @@
 
         function spawnLoop() {
             if (!state.gameActive || state.isPaused) return;
-            const holes = document.querySelectorAll('.hole');
-            const randomHole = holes[Math.floor(Math.random() * holes.length)];
-            const tierRoll = Math.random();
-            let tier = 'tier-cyan', pts = 1, dur = 750;
+            
+            // Multi-Dot Chaos logic
+            let dotsToSpawn = 1;
+            if (state.level === 'turbo') {
+                if (state.timeLeft <= 5) dotsToSpawn = 3;
+                else if (state.timeLeft <= 15) dotsToSpawn = 2;
+            }
 
-            if (tierRoll > 0.94) { tier = 'tier-white'; pts = 10; dur = 350; }
-            else if (tierRoll > 0.75) { tier = 'tier-orange'; pts = 5; dur = 550; }
+            for (let i = 0; i < dotsToSpawn; i++) {
+                const holes = Array.from(document.querySelectorAll('.hole')).filter(h => !h.querySelector('.dot'));
+                if (holes.length === 0) break;
+                
+                const randomHole = holes[Math.floor(Math.random() * holes.length)];
+                const tierRoll = Math.random();
+                let tier = 'tier-cyan', pts = 1, dur = (state.level === 'turbo') ? 450 : 750;
 
-            if (!randomHole.querySelector('.dot')) {
+                if (tierRoll > 0.94) { 
+                    tier = 'tier-white'; pts = 10; dur = (state.level === 'turbo') ? 250 : 350; 
+                } else if (tierRoll > 0.75) { 
+                    tier = 'tier-orange'; pts = 5; dur = (state.level === 'turbo') ? 350 : 550; 
+                }
+
                 const dot = document.createElement('div');
                 dot.className = `dot ${tier}`; dot.dataset.points = pts;
                 randomHole.appendChild(dot);
                 setTimeout(() => { if(dot && dot.parentNode) dot.remove(); }, dur);
             }
+            
             spawnTimeout = setTimeout(spawnLoop, state.spawnRate);
         }
 
+        // Updated Hole-Hit Logic for snappier mobile feel
         document.querySelectorAll('.hole').forEach(hole => {
-            hole.addEventListener('mousedown', (e) => {
+            const handleSmak = (e) => {
+                e.preventDefault();
                 unlockAudio();
                 const dot = hole.querySelector('.dot');
                 if (dot && state.gameActive && !state.isPaused) {
@@ -260,7 +312,10 @@
                     hole.style.background = '#ddd';
                     setTimeout(() => hole.style.background = '', 50);
                 }
-            });
+            };
+            
+            hole.addEventListener('mousedown', handleSmak);
+            hole.addEventListener('touchstart', handleSmak);
         });
 
         function endTurn() {
