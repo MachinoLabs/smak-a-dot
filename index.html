@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smak-a-Dot™ | V11 Precision Blitz</title>
+    <title>Smak-a-Dot™ | V11.1 Precision</title>
     <style>
         :root {
             --cyan: #00C3FF;
@@ -12,7 +12,8 @@
             --gray: #f0f0f0;
             --pizza-gold: #D4AF37;
         }
-/* --- THE SUN/MOON THEMES --- */
+
+        /* --- THE SUN/MOON THEMES --- */
         body {
             --bg-color: var(--white);
             --text-color: #111;
@@ -20,6 +21,11 @@
             --overlay-bg: rgba(255, 255, 255, 0.95);
             background-color: var(--bg-color);
             color: var(--text-color);
+            margin: 0; padding: 0; height: 100vh;
+            font-family: 'Arial Black', Gadget, sans-serif;
+            display: flex; flex-direction: column;
+            overflow: hidden; user-select: none;
+            touch-action: manipulation;
         }
 
         body.dark-mode {
@@ -27,14 +33,6 @@
             --text-color: #f0f0f0;
             --border-color: #333;
             --overlay-bg: rgba(10, 10, 10, 0.95);
-        }
-        body, html {
-            margin: 0; padding: 0; height: 100%;
-            font-family: 'Arial Black', Gadget, sans-serif;
-            background-color: var(--white);
-            display: flex; flex-direction: column;
-            overflow: hidden; user-select: none;
-            touch-action: manipulation;
         }
 
         .pizza-watermark {
@@ -45,21 +43,29 @@
             pointer-events: none; z-index: 1; text-transform: uppercase;
         }
 
-#overlay {
-            position: fixed; inset: 0; background: var(--overlay-bg); color: var(--text-color);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 1000; text-align: center; padding: 20px;
+        /* HEADER FIX: Guaranteed Left/Right Split */
+        header {
+            padding: 10px 20px; 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center; 
+            background: var(--bg-color); 
+            z-index: 10; 
+            border-bottom: 3px solid var(--border-color);
+            box-sizing: border-box;
+            width: 100%;
         }
 
-        .stats-group { display: flex; align-items: center; gap: 15px; }
-        .stats { font-size: 1.1rem; font-weight: bold; }
+        .stats-group { display: flex; align-items: center; gap: 20px; }
+        .stats { font-size: 1.2rem; font-weight: bold; }
 
+        .controls { display: flex; align-items: center; gap: 10px; }
         .controls button {
             padding: 8px 12px; font-weight: bold; cursor: pointer;
-            border: 2px solid #333; background: white; border-radius: 4px;
+            border: 2px solid #333; background: white; border-radius: 4px; color: #111;
         }
 
-        /* Merged Game Board: No Grid, Full Screen Relative Area */
+        /* Game Board */
         #game-board {
             flex-grow: 1; 
             display: block; 
@@ -68,7 +74,7 @@
             cursor: crosshair;
         }
 
-        /* Merged Dot: Absolute positioning, single target size */
+        /* Dots */
         .dot { 
             position: absolute; 
             width: 65px; height: 65px; 
@@ -85,7 +91,12 @@
         .tier-orange { background: var(--orange); box-shadow: 0 0 20px var(--orange); }
         .tier-white { background: #fff; border: 5px solid var(--orange); box-shadow: 0 0 25px white; }
 
-        /* Merged Floater: Spawns at exact dot coordinates */
+        /* Dark Mode Neon Glow */
+        body.dark-mode .tier-cyan { box-shadow: 0 0 30px var(--cyan), inset 0 0 10px var(--cyan); }
+        body.dark-mode .tier-orange { box-shadow: 0 0 40px var(--orange), inset 0 0 10px var(--orange); }
+        body.dark-mode .tier-white { box-shadow: 0 0 50px white, inset 0 0 15px white; border-color: var(--cyan); }
+
+        /* Floater */
         .floater {
             position: absolute; 
             transform: translate(-50%, -50%);
@@ -93,13 +104,16 @@
             pointer-events: none; animation: floatUp 0.6s ease-out forwards; z-index: 100;
             text-shadow: 3px 3px 0px white;
         }
+        body.dark-mode .floater { text-shadow: 2px 2px 0px black; }
+
         @keyframes floatUp {
             0% { opacity: 1; transform: translate(-50%, -50%); }
             100% { opacity: 0; transform: translate(-50%, -150px); }
         }
 
+        /* Overlay & UI */
         #overlay {
-            position: fixed; inset: 0; background: white;
+            position: fixed; inset: 0; background: var(--overlay-bg); color: var(--text-color);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 1000; text-align: center; padding: 20px;
         }
@@ -112,14 +126,14 @@
         .legend-item { display: flex; flex-direction: column; align-items: center; font-size: 0.9rem; }
         .dot-sample { width: 35px; height: 35px; border-radius: 50%; margin-bottom: 8px; }
 
-        .p-btn, .l-btn { padding: 10px 18px; border: 3px solid var(--cyan); background: none; font-size: 1rem; font-weight: 900; cursor: pointer; border-radius: 8px; margin: 3px; }
-        .p-btn.active, .l-btn.active { background: var(--cyan); color: white; }
-        .l-btn-turbo.active { background: var(--orange); border-color: var(--orange); }
+        .p-btn, .l-btn { padding: 10px 18px; border: 3px solid var(--cyan); background: none; font-size: 1rem; font-weight: 900; cursor: pointer; border-radius: 8px; margin: 3px; color: var(--text-color); }
+        .p-btn.active, .l-btn.active { background: var(--cyan); color: #111; }
+        .l-btn-turbo.active { background: var(--orange); border-color: var(--orange); color: white; }
 
         .start-btn { background: var(--orange); color: white; border: none; padding: 20px 60px; font-size: 2.2rem; font-weight: 900; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 0 #b34200; margin-top: 15px;}
         .start-btn:active { transform: translateY(3px); box-shadow: none; }
 
-        .footer { padding: 10px; text-align: center; border-top: 1px solid #ddd; font-size: 12px; z-index: 10; background: white;}
+        .footer { padding: 10px; text-align: center; border-top: 1px solid var(--border-color); font-size: 12px; z-index: 10; background: var(--bg-color); color: var(--text-color);}
     </style>
 </head>
 <body>
@@ -128,11 +142,12 @@
 
     <header>
         <div class="stats-group">
-            <span class="stats">P<span id="cur-p-display">1</span></span>
+            <span class="stats">PLAYER <span id="cur-p-display">1</span></span>
             <span class="stats" style="color:var(--cyan)">SCORE: <span id="score">0</span></span>
         </div>
         <div class="controls">
-            <span class="stats" style="color:var(--orange); margin-right:10px;"><span id="time">30</span>s</span>
+            <span class="stats" style="color:var(--orange);"><span id="time">30</span>s</span>
+            <button id="theme-btn">🌙 MOON</button>
             <button id="pause-btn">PAUSE</button>
             <button id="restart-btn">RESTART</button>
         </div>
@@ -186,6 +201,7 @@
     </footer>
 
     <script>
+        // --- AUDIO ENGINE ---
         let audioCtx;
         function unlockAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -206,6 +222,7 @@
             osc.stop(audioCtx.currentTime + dur);
         }
 
+        // --- GAME STATE ---
         let state = { numPlayers: 1, currentPlayer: 1, scores: [], timeLeft: 30, gameActive: false, isPaused: false, spawnRate: 800, level: 'kids' };
         let timerInterval = null, spawnTimeout = null;
         const board = document.getElementById('game-board');
@@ -227,7 +244,6 @@
             unlockAudio();
         }
 
-        // Updated Floater: spawns at precise X/Y coordinates
         function spawnFloater(x, y, pts) {
             const f = document.createElement('div');
             f.className = 'floater'; f.textContent = `+${pts}`;
@@ -256,8 +272,11 @@
             document.getElementById('cur-p-display').textContent = state.currentPlayer;
             document.getElementById('score').textContent = "0";
             document.getElementById('time').textContent = "30";
+            
+            document.getElementById('pause-btn').textContent = "PAUSE";
+            
             startTimer(); 
-            spawnDot(); // Engage Sniper Logic
+            spawnDot(); 
         }
 
         function startTimer() {
@@ -268,44 +287,39 @@
                     
                     if (state.timeLeft % 5 === 0) {
                         const multiplier = (state.level === 'turbo') ? 0.75 : 0.85;
-                        state.spawnRate = Math.max(state.spawnRate * multiplier, 250); // 250ms FLOOR
+                        state.spawnRate = Math.max(state.spawnRate * multiplier, 250);
                     }
                     if (state.timeLeft <= 0) endTurn();
                 }
             }, 1000);
         }
 
-        // --- MERGED SNIPER ENGINE: Single target, random coords, instant respawn ---
+        // --- SNIPER ENGINE ---
         function spawnDot() {
             if (!state.gameActive || state.isPaused) return;
 
-            // 1. Clear any existing targets
             clearTimeout(spawnTimeout);
             const oldDot = document.querySelector('.dot');
             if (oldDot) oldDot.remove();
 
-            // 2. Generate Random Coords inside the board bounds
             const x = Math.random() * (board.clientWidth - 80) + 40;
             const y = Math.random() * (board.clientHeight - 80) + 40;
 
-            // 3. Roll for Tier (cyan, orange, or white)
             const tierRoll = Math.random();
             let tier = 'tier-cyan', pts = 1, durMultiplier = 1;
 
             if (tierRoll > 0.92) { 
-                tier = 'tier-white'; pts = 10; durMultiplier = 0.55; // Fast vanish 
+                tier = 'tier-white'; pts = 10; durMultiplier = 0.55; 
             } else if (tierRoll > 0.70) { 
                 tier = 'tier-orange'; pts = 5; durMultiplier = 0.8; 
             }
 
-            // 4. Create the Target
             const dot = document.createElement('div');
             dot.className = `dot ${tier}`; 
             dot.dataset.points = pts;
             dot.style.left = `${x}px`;
             dot.style.top = `${y}px`;
 
-            // 5. The "Smak" Event
             const handleSmak = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -322,16 +336,14 @@
                 if (pts === 10) playSound(1300, 'triangle', 0.25);
                 
                 dot.remove();
-                spawnDot(); // Instant next target
+                spawnDot(); 
             };
 
-            // Bind to both click and touch for instant mobile response
             dot.addEventListener('mousedown', handleSmak);
             dot.addEventListener('touchstart', handleSmak, {passive: false});
 
             board.appendChild(dot);
 
-            // 6. Vanish Timer (Player is too slow)
             spawnTimeout = setTimeout(() => {
                 if (state.gameActive && !state.isPaused) spawnDot();
             }, state.spawnRate * durMultiplier);
@@ -378,27 +390,13 @@
             this.textContent = state.isPaused ? "RESUME" : "PAUSE";
             if(!state.isPaused) { 
                 unlockAudio(); 
-                spawnDot(); // Resume sniper engine
+                spawnDot(); 
             }
         });
         
         document.getElementById('restart-btn').addEventListener('click', () => location.reload());
         document.getElementById('start-btn').addEventListener('click', startGame);
 
-        document.getElementById('pause-btn').addEventListener('click', function() {
-            if(!state.gameActive) return;
-            state.isPaused = !state.isPaused;
-            this.textContent = state.isPaused ? "RESUME" : "PAUSE";
-            if(!state.isPaused) { 
-                unlockAudio(); 
-                spawnDot(); // Resume sniper engine
-            }
-        });
-        
-        document.getElementById('restart-btn').addEventListener('click', () => location.reload());
-        document.getElementById('start-btn').addEventListener('click', startGame);
-
-        // --- PASTE THIS RIGHT HERE ---
         // --- SUN / MOON LOGIC ---
         const themeBtn = document.getElementById('theme-btn');
         let isDark = false;
@@ -409,14 +407,12 @@
             
             if (isDark) {
                 themeBtn.textContent = "☀️ SUN";
-                document.querySelector('.pizza-watermark').style.color = "rgba(212, 175, 55, 0.05)"; // Dim watermark
+                document.querySelector('.pizza-watermark').style.color = "rgba(212, 175, 55, 0.05)"; 
             } else {
                 themeBtn.textContent = "🌙 MOON";
-                document.querySelector('.pizza-watermark').style.color = "rgba(212, 175, 55, 0.18)"; // Restore watermark
+                document.querySelector('.pizza-watermark').style.color = "rgba(212, 175, 55, 0.18)"; 
             }
         });
-        // --- END OF PASTE ---
-
     </script>
 </body>
 </html>
