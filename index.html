@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smak-a-Dot™ | V10 Turbo Blitz</title>
+    <title>Smak-a-Dot™ | V11 Precision Blitz</title>
     <style>
         :root {
             --cyan: #00C3FF;
@@ -79,7 +79,7 @@
 
         .full-legend { 
             display: flex; justify-content: center; gap: 40px; 
-            margin: 15px 0; padding: 15px 30px; 
+            margin: 20px 0; padding: 15px 30px; 
             border: 2px dashed #ccc; border-radius: 20px; 
         }
         .legend-item { display: flex; flex-direction: column; align-items: center; font-size: 0.9rem; }
@@ -87,8 +87,6 @@
 
         .p-btn, .l-btn { padding: 10px 18px; border: 3px solid var(--cyan); background: none; font-size: 1rem; font-weight: 900; cursor: pointer; border-radius: 8px; margin: 3px; }
         .p-btn.active, .l-btn.active { background: var(--cyan); color: white; }
-        
-        /* Level Specific Style */
         .l-btn-turbo.active { background: var(--orange); border-color: var(--orange); }
 
         .start-btn { background: var(--orange); color: white; border: none; padding: 20px 60px; font-size: 2.2rem; font-weight: 900; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 0 #b34200; margin-top: 15px;}
@@ -167,12 +165,8 @@
     <script>
         let audioCtx;
         function unlockAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
         function playSound(freq, type, dur) {
@@ -229,8 +223,6 @@
             state.gameActive = true; 
             state.isPaused = false; 
             state.timeLeft = 30; 
-            
-            // Level Balancing
             state.spawnRate = (state.level === 'turbo') ? 500 : 800;
             
             document.getElementById('overlay').style.display = 'none';
@@ -247,12 +239,10 @@
                     state.timeLeft--;
                     document.getElementById('time').textContent = state.timeLeft;
                     
-                    // Ramping
                     if (state.timeLeft % 5 === 0) {
                         const multiplier = (state.level === 'turbo') ? 0.70 : 0.85;
-                        state.spawnRate *= multiplier;
+                        state.spawnRate = Math.max(state.spawnRate * multiplier, 200); // 200ms FLOOR
                     }
-                    
                     if (state.timeLeft <= 0) endTurn();
                 }
             }, 1000);
@@ -261,37 +251,43 @@
         function spawnLoop() {
             if (!state.gameActive || state.isPaused) return;
             
-            // Multi-Dot Chaos logic
-            let dotsToSpawn = 1;
-            if (state.level === 'turbo') {
-                if (state.timeLeft <= 5) dotsToSpawn = 3;
-                else if (state.timeLeft <= 15) dotsToSpawn = 2;
-            }
-
-            for (let i = 0; i < dotsToSpawn; i++) {
-                const holes = Array.from(document.querySelectorAll('.hole')).filter(h => !h.querySelector('.dot'));
-                if (holes.length === 0) break;
-                
-                const randomHole = holes[Math.floor(Math.random() * holes.length)];
-                const tierRoll = Math.random();
-                let tier = 'tier-cyan', pts = 1, dur = (state.level === 'turbo') ? 450 : 750;
-
-                if (tierRoll > 0.94) { 
-                    tier = 'tier-white'; pts = 10; dur = (state.level === 'turbo') ? 250 : 350; 
-                } else if (tierRoll > 0.75) { 
-                    tier = 'tier-orange'; pts = 5; dur = (state.level === 'turbo') ? 350 : 550; 
+            const currentDots = document.querySelectorAll('.dot').length;
+            const maxDots = 5; // POPULATION CAP
+            
+            if (currentDots < maxDots) {
+                let dotsToSpawn = 1;
+                if (state.level === 'turbo') {
+                    if (state.timeLeft <= 5) dotsToSpawn = 3;
+                    else if (state.timeLeft <= 15) dotsToSpawn = 2;
                 }
 
-                const dot = document.createElement('div');
-                dot.className = `dot ${tier}`; dot.dataset.points = pts;
-                randomHole.appendChild(dot);
-                setTimeout(() => { if(dot && dot.parentNode) dot.remove(); }, dur);
+                // Only spawn what we have room for
+                dotsToSpawn = Math.min(dotsToSpawn, maxDots - currentDots);
+
+                for (let i = 0; i < dotsToSpawn; i++) {
+                    const holes = Array.from(document.querySelectorAll('.hole')).filter(h => !h.querySelector('.dot'));
+                    if (holes.length === 0) break;
+                    
+                    const randomHole = holes[Math.floor(Math.random() * holes.length)];
+                    const tierRoll = Math.random();
+                    let tier = 'tier-cyan', pts = 1, dur = (state.level === 'turbo') ? 450 : 750;
+
+                    if (tierRoll > 0.94) { 
+                        tier = 'tier-white'; pts = 10; dur = (state.level === 'turbo') ? 250 : 350; 
+                    } else if (tierRoll > 0.75) { 
+                        tier = 'tier-orange'; pts = 5; dur = (state.level === 'turbo') ? 350 : 550; 
+                    }
+
+                    const dot = document.createElement('div');
+                    dot.className = `dot ${tier}`; dot.dataset.points = pts;
+                    randomHole.appendChild(dot);
+                    setTimeout(() => { if(dot && dot.parentNode) dot.remove(); }, dur);
+                }
             }
             
             spawnTimeout = setTimeout(spawnLoop, state.spawnRate);
         }
 
-        // Updated Hole-Hit Logic for snappier mobile feel
         document.querySelectorAll('.hole').forEach(hole => {
             const handleSmak = (e) => {
                 e.preventDefault();
@@ -301,19 +297,15 @@
                     const pts = parseInt(dot.dataset.points);
                     let cur = parseInt(document.getElementById('score').textContent);
                     document.getElementById('score').textContent = cur + pts;
-                    
                     spawnFloater(hole, pts);
-                    
                     if (pts === 1) playSound(700, 'triangle', 0.1); 
                     if (pts === 5) playSound(850, 'square', 0.15);
                     if (pts === 10) playSound(1300, 'triangle', 0.25);
-
                     dot.remove();
                     hole.style.background = '#ddd';
                     setTimeout(() => hole.style.background = '', 50);
                 }
             };
-            
             hole.addEventListener('mousedown', handleSmak);
             hole.addEventListener('touchstart', handleSmak);
         });
@@ -323,13 +315,11 @@
             playSound(300, 'sawtooth', 0.4);
             let finalScore = parseInt(document.getElementById('score').textContent);
             state.scores[state.currentPlayer - 1] = finalScore;
-
             if (finalScore > highScore) {
                 highScore = finalScore;
                 localStorage.setItem('smak_hi_score', highScore);
                 document.getElementById('hi-score-val').textContent = highScore;
             }
-
             if (state.currentPlayer < state.numPlayers) {
                 state.currentPlayer++;
                 document.getElementById('overlay').style.display = 'flex';
@@ -359,7 +349,6 @@
             this.textContent = state.isPaused ? "RESUME" : "PAUSE";
             if(!state.isPaused) { unlockAudio(); spawnLoop(); }
         });
-
         document.getElementById('restart-btn').addEventListener('click', () => location.reload());
         document.getElementById('start-btn').addEventListener('click', startGame);
     </script>
