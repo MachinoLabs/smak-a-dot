@@ -3,296 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smak-A-Dot™ | MachinoLabs</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔴</text></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet">
+    <title>Smak-a-Dot™ | V11 Precision Blitz</title>
     <style>
         :root {
-            --bg: #000000;
-            --cyan: #00e5ff;
-            --gold: #ffbf00;
-            --red: #ff3d00;
-            --panel: #0a0a0a;
-            --line: #1a1a1a;
+            --cyan: #00C3FF;
+            --orange: #FF5E00;
+            --white: #FFFFFF;
+            --gray: #f0f0f0;
+            --pizza-gold: #D4AF37;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
-
-        body {
-            background-color: var(--bg);
-            color: white;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            font-family: 'Arial Black', Gadget, sans-serif;
+            background-color: var(--white);
+            display: flex; flex-direction: column;
+            overflow: hidden; user-select: none;
+            touch-action: manipulation;
         }
 
-        /* --- UI LAYER --- */
-        #ui-layer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 40px;
-            border-bottom: 1px solid var(--line);
-            z-index: 100;
+        .pizza-watermark {
+            position: fixed; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14vw; font-weight: 900; line-height: 0.8;
+            color: rgba(212, 175, 55, 0.18); text-align: center;
+            pointer-events: none; z-index: 1; text-transform: uppercase;
         }
 
-        .brand { font-weight: 900; letter-spacing: 2px; text-transform: uppercase; font-size: 1.2rem; }
-        .brand span { color: var(--cyan); }
+        header {
+            padding: 10px 20px; display: flex; justify-content: space-between;
+            align-items: center; background: white; z-index: 10; border-bottom: 3px solid var(--cyan);
+        }
 
-        #stats { display: flex; gap: 30px; }
-        .stat-box { text-align: center; }
-        .stat-label { font-size: 0.7rem; color: #444; text-transform: uppercase; font-weight: 900; }
-        .stat-value { font-size: 1.5rem; font-weight: 900; color: var(--gold); }
+        .stats-group { display: flex; align-items: center; gap: 15px; }
+        .stats { font-size: 1.1rem; font-weight: bold; }
 
-        /* --- GAME BOARD --- */
+        .controls button {
+            padding: 8px 12px; font-weight: bold; cursor: pointer;
+            border: 2px solid #333; background: white; border-radius: 4px;
+        }
+
+        /* Merged Game Board: No Grid, Full Screen Relative Area */
         #game-board {
-            flex-grow: 1;
+            flex-grow: 1; 
+            display: block; 
+            padding: 10px; z-index: 5;
             position: relative;
             cursor: crosshair;
         }
 
-        .dot {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            background: radial-gradient(circle, var(--red) 0%, #900 100%);
-            border-radius: 50%;
-            box-shadow: 0 0 20px rgba(255, 61, 0, 0.4);
+        /* Merged Dot: Absolute positioning, single target size */
+        .dot { 
+            position: absolute; 
+            width: 65px; height: 65px; 
+            border-radius: 50%; 
+            z-index: 6; 
             transform: translate(-50%, -50%) scale(1);
-            transition: transform 0.1s ease-out;
-            border: 3px solid rgba(255,255,255,0.2);
+            transition: transform 0.05s ease-out;
         }
+        
+        .dot:active { transform: translate(-50%, -50%) scale(0.85); }
 
-        .dot:active { transform: translate(-50%, -50%) scale(0.8); }
+        /* Original Tiers */
+        .tier-cyan { background: var(--cyan); box-shadow: 0 0 15px var(--cyan); }
+        .tier-orange { background: var(--orange); box-shadow: 0 0 20px var(--orange); }
+        .tier-white { background: #fff; border: 5px solid var(--orange); box-shadow: 0 0 25px white; }
 
-        /* --- FEEDBACK --- */
+        /* Merged Floater: Spawns at exact dot coordinates */
         .floater {
-            position: absolute;
-            color: var(--cyan);
-            font-weight: 900;
-            pointer-events: none;
-            animation: floatUp 0.6s ease-out forwards;
-            z-index: 50;
+            position: absolute; 
+            transform: translate(-50%, -50%);
+            color: var(--orange); font-size: 2.8rem; font-weight: 900;
+            pointer-events: none; animation: floatUp 0.6s ease-out forwards; z-index: 100;
+            text-shadow: 3px 3px 0px white;
         }
-
         @keyframes floatUp {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-50px); opacity: 0; }
+            0% { opacity: 1; transform: translate(-50%, -50%); }
+            100% { opacity: 0; transform: translate(-50%, -150px); }
         }
 
-        /* --- SCREENS --- */
-        .overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            text-align: center;
+        #overlay {
+            position: fixed; inset: 0; background: white;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 1000; text-align: center; padding: 20px;
         }
 
-        .overlay h1 { font-size: 4rem; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; }
-        .overlay p { color: #666; margin-bottom: 30px; max-width: 400px; }
-
-        .btn {
-            background: var(--cyan);
-            color: black;
-            padding: 20px 50px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 900;
-            text-transform: uppercase;
-            border: none;
-            cursor: pointer;
-            transition: 0.3s;
+        .full-legend { 
+            display: flex; justify-content: center; gap: 40px; 
+            margin: 20px 0; padding: 15px 30px; 
+            border: 2px dashed #ccc; border-radius: 20px; 
         }
+        .legend-item { display: flex; flex-direction: column; align-items: center; font-size: 0.9rem; }
+        .dot-sample { width: 35px; height: 35px; border-radius: 50%; margin-bottom: 8px; }
 
-        .btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(0, 229, 255, 0.4); }
+        .p-btn, .l-btn { padding: 10px 18px; border: 3px solid var(--cyan); background: none; font-size: 1rem; font-weight: 900; cursor: pointer; border-radius: 8px; margin: 3px; }
+        .p-btn.active, .l-btn.active { background: var(--cyan); color: white; }
+        .l-btn-turbo.active { background: var(--orange); border-color: var(--orange); }
 
-        #email-capture {
-            margin-top: 30px;
-            display: none; /* Shows on Game Over */
-        }
+        .start-btn { background: var(--orange); color: white; border: none; padding: 20px 60px; font-size: 2.2rem; font-weight: 900; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 0 #b34200; margin-top: 15px;}
+        .start-btn:active { transform: translateY(3px); box-shadow: none; }
 
-        input[type="email"] {
-            padding: 15px;
-            border-radius: 5px;
-            border: 1px solid var(--line);
-            background: #111;
-            color: white;
-            margin-right: 10px;
-            width: 250px;
-        }
-
-        /* --- FOOTER --- */
-        .footer { padding: 20px; text-align: center; color: #222; font-size: 0.7rem; font-weight: 900; text-transform: uppercase; }
+        .footer { padding: 10px; text-align: center; border-top: 1px solid #ddd; font-size: 12px; z-index: 10; background: white;}
     </style>
 </head>
 <body>
 
-    <div id="ui-layer">
-        <div class="brand"><span>SS</span>CF // SAD</div>
-        <div id="stats">
-            <div class="stat-box">
-                <div class="stat-label">Score</div>
-                <div id="score" class="stat-value">0</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Time</div>
-                <div id="timer" class="stat-value">30</div>
-            </div>
+    <div class="pizza-watermark">MARK’S<br>PIZZA<br>LEBANON</div>
+
+    <header>
+        <div class="stats-group">
+            <span class="stats">P<span id="cur-p-display">1</span></span>
+            <span class="stats" style="color:var(--cyan)">SCORE: <span id="score">0</span></span>
         </div>
-    </div>
-
-    <main id="game-board"></main>
-
-    <div id="start-screen" class="overlay">
-        <h1>SMAK-A-DOT</h1>
-        <p>Reflexes at the speed of thought. Smak the red targets. Don't blink.</p>
-        <button class="btn" onclick="startGame()">Initiate Run</button>
-    </div>
-
-    <div id="end-screen" class="overlay" style="display: none;">
-        <h1>RUN OVER</h1>
-        <div class="stat-box" style="margin-bottom: 20px;">
-            <div class="stat-label">Final Score</div>
-            <div id="final-score" class="stat-value" style="font-size: 4rem;">0</div>
+        <div class="controls">
+            <span class="stats" style="color:var(--orange); margin-right:10px;"><span id="time">30</span>s</span>
+            <button id="pause-btn">PAUSE</button>
+            <button id="restart-btn">RESTART</button>
         </div>
+    </header>
+
+    <div id="game-board"></div>
+
+    <div id="overlay">
+        <h1 style="font-size: 3.5rem; margin: 0; color: var(--orange);">smak-a-dot™</h1>
         
-        <div id="email-section">
-            <p>Join the MachinoLabs Elite to save your scores.</p>
-            <input type="email" id="player-email" placeholder="Enter Email">
-            <button class="btn" style="padding: 15px 30px;" onclick="saveLead()">Join</button>
+        <div id="lobby-controls">
+            <div class="full-legend">
+                <div class="legend-item"><div class="dot-sample tier-cyan"></div><span style="font-weight:900;">1 PT</span></div>
+                <div class="legend-item"><div class="dot-sample tier-orange"></div><span style="font-weight:900;">5 PTS</span></div>
+                <div class="legend-item"><div class="dot-sample tier-white" style="border:3px solid var(--orange)"></div><span style="font-weight:900;">10 PT</span></div>
+            </div>
+
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <div>
+                    <p style="font-weight: 900; margin: 5px;">PLAYERS</p>
+                    <div class="player-select">
+                        <button class="p-btn active" onclick="setPlayers(1)">1</button>
+                        <button class="p-btn" onclick="setPlayers(2)">2</button>
+                        <button class="p-btn" onclick="setPlayers(3)">3</button>
+                        <button class="p-btn" onclick="setPlayers(4)">4</button>
+                    </div>
+                </div>
+                <div>
+                    <p style="font-weight: 900; margin: 5px;">LEVEL</p>
+                    <div class="level-select">
+                        <button class="l-btn active" onclick="setLevel('kids')">KIDS</button>
+                        <button class="l-btn l-btn-turbo" onclick="setLevel('turbo')">TURBO BLITZ</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="start-btn" id="start-btn">GO!</button>
+            <div style="color: var(--cyan); font-weight: 900; font-size: 1.2rem; margin-top: 15px;">HI-SCORE: <span id="hi-score-val">0</span></div>
         </div>
-        
-        <button class="btn" style="background: none; border: 1px solid var(--cyan); color: var(--cyan); margin-top: 20px;" onclick="location.reload()">Try Again</button>
+
+        <div id="results" style="display:none;">
+            <h2 id="winner-text" style="font-size: 2.8rem; color: var(--cyan);"></h2>
+            <div id="score-list" style="font-size: 1.8rem; margin-bottom: 25px;"></div>
+            <button class="start-btn" id="next-player-btn">READY?</button>
+        </div>
     </div>
 
-    <footer class="footer">
-        MachinoLabs • Built for Speed • ⭐ LET'S BUILD SOMETHING ⭐
+    <footer class="footer"> 
+        <p style="font-weight:bold; color:var(--orange); margin:0;">Built with StupidSimpleCrazyFast™</p> 
+        <div>MachinoLabs • Joe • 717.623.2907</div> 
     </footer>
 
     <script>
-        const state = {
-            score: 0,
-            timeLeft: 30,
-            active: false,
-            difficulty: 800 // ms
-        };
+        let audioCtx;
+        function unlockAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
 
-        const board = document.getElementById('game-board');
-        const scoreEl = document.getElementById('score');
-        const timerEl = document.getElementById('timer');
-        let gameTimer;
-        let spawnTimeout;
-
-        // --- AUDIO ENGINE (Synthesized) ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(freq, type, dur) {
+            if (!audioCtx) return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = type;
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
             gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
             osc.stop(audioCtx.currentTime + dur);
         }
 
-        function spawnDot() {
-            if (!state.active) return;
+        let state = { numPlayers: 1, currentPlayer: 1, scores: [], timeLeft: 30, gameActive: false, isPaused: false, spawnRate: 800, level: 'kids' };
+        let timerInterval = null, spawnTimeout = null;
+        const board = document.getElementById('game-board');
 
-            // CLEARANCE
+        let highScore = localStorage.getItem('smak_hi_score') || 0;
+        document.getElementById('hi-score-val').textContent = highScore;
+
+        function setPlayers(n) {
+            state.numPlayers = n;
+            document.querySelectorAll('.p-btn').forEach((btn, i) => btn.classList.toggle('active', i + 1 === n));
+            unlockAudio();
+        }
+
+        function setLevel(l) {
+            state.level = l;
+            document.querySelectorAll('.l-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(l));
+            });
+            unlockAudio();
+        }
+
+        // Updated Floater: spawns at precise X/Y coordinates
+        function spawnFloater(x, y, pts) {
+            const f = document.createElement('div');
+            f.className = 'floater'; f.textContent = `+${pts}`;
+            f.style.left = `${x}px`;
+            f.style.top = `${y}px`;
+            board.appendChild(f);
+            setTimeout(() => { if(f.parentNode) f.remove(); }, 600);
+        }
+
+        function stopAllProcesses() {
+            state.gameActive = false;
+            clearInterval(timerInterval);
+            clearTimeout(spawnTimeout);
+            document.querySelectorAll('.dot').forEach(d => d.remove());
+        }
+
+        function startGame() {
+            unlockAudio();
+            stopAllProcesses();
+            state.gameActive = true; 
+            state.isPaused = false; 
+            state.timeLeft = 30; 
+            state.spawnRate = (state.level === 'turbo') ? 600 : 900;
+            
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('cur-p-display').textContent = state.currentPlayer;
+            document.getElementById('score').textContent = "0";
+            document.getElementById('time').textContent = "30";
+            startTimer(); 
+            spawnDot(); // Engage Sniper Logic
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (!state.isPaused && state.gameActive) {
+                    state.timeLeft--;
+                    document.getElementById('time').textContent = state.timeLeft;
+                    
+                    if (state.timeLeft % 5 === 0) {
+                        const multiplier = (state.level === 'turbo') ? 0.75 : 0.85;
+                        state.spawnRate = Math.max(state.spawnRate * multiplier, 250); // 250ms FLOOR
+                    }
+                    if (state.timeLeft <= 0) endTurn();
+                }
+            }, 1000);
+        }
+
+        // --- MERGED SNIPER ENGINE: Single target, random coords, instant respawn ---
+        function spawnDot() {
+            if (!state.gameActive || state.isPaused) return;
+
+            // 1. Clear any existing targets
             clearTimeout(spawnTimeout);
             const oldDot = document.querySelector('.dot');
             if (oldDot) oldDot.remove();
 
-            // CREATE
-            const dot = document.createElement('div');
-            dot.className = 'dot';
-            
-            // MATH
+            // 2. Generate Random Coords inside the board bounds
             const x = Math.random() * (board.clientWidth - 80) + 40;
             const y = Math.random() * (board.clientHeight - 80) + 40;
+
+            // 3. Roll for Tier (cyan, orange, or white)
+            const tierRoll = Math.random();
+            let tier = 'tier-cyan', pts = 1, durMultiplier = 1;
+
+            if (tierRoll > 0.92) { 
+                tier = 'tier-white'; pts = 10; durMultiplier = 0.55; // Fast vanish 
+            } else if (tierRoll > 0.70) { 
+                tier = 'tier-orange'; pts = 5; durMultiplier = 0.8; 
+            }
+
+            // 4. Create the Target
+            const dot = document.createElement('div');
+            dot.className = `dot ${tier}`; 
+            dot.dataset.points = pts;
             dot.style.left = `${x}px`;
             dot.style.top = `${y}px`;
 
-            dot.onmousedown = (e) => {
+            // 5. The "Smak" Event
+            const handleSmak = (e) => {
+                e.preventDefault();
                 e.stopPropagation();
-                smak(x, y);
+                if (!state.gameActive || state.isPaused) return;
+
+                unlockAudio();
+                let cur = parseInt(document.getElementById('score').textContent);
+                document.getElementById('score').textContent = cur + pts;
+                
+                spawnFloater(x, y, pts);
+                
+                if (pts === 1) playSound(700, 'triangle', 0.1); 
+                if (pts === 5) playSound(850, 'square', 0.15);
+                if (pts === 10) playSound(1300, 'triangle', 0.25);
+                
+                dot.remove();
+                spawnDot(); // Instant next target
             };
+
+            // Bind to both click and touch for instant mobile response
+            dot.addEventListener('mousedown', handleSmak);
+            dot.addEventListener('touchstart', handleSmak, {passive: false});
 
             board.appendChild(dot);
 
-            // AUTO-MOVE (Speed challenge)
+            // 6. Vanish Timer (Player is too slow)
             spawnTimeout = setTimeout(() => {
-                if (state.active) spawnDot();
-            }, state.difficulty);
+                if (state.gameActive && !state.isPaused) spawnDot();
+            }, state.spawnRate * durMultiplier);
         }
 
-        function smak(x, y) {
-            state.score += 10;
-            scoreEl.textContent = state.score;
-            playSound(600, 'square', 0.1);
+        function endTurn() {
+            stopAllProcesses();
+            playSound(300, 'sawtooth', 0.4);
+            let finalScore = parseInt(document.getElementById('score').textContent);
+            state.scores[state.currentPlayer - 1] = finalScore;
             
-            // FEEDBACK
-            const f = document.createElement('div');
-            f.className = 'floater';
-            f.textContent = '+10';
-            f.style.left = `${x}px`;
-            f.style.top = `${y}px`;
-            board.appendChild(f);
-            setTimeout(() => f.remove(), 600);
-
-            // DIFFICULTY CRANK
-            if (state.difficulty > 400) state.difficulty -= 5;
-
-            spawnDot(); // Instant next target
-        }
-
-        function startGame() {
-            state.active = true;
-            state.score = 0;
-            state.timeLeft = 30;
-            state.difficulty = 800;
-            
-            document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('end-screen').style.display = 'none';
-            
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            gameTimer = setInterval(() => {
-                state.timeLeft--;
-                timerEl.textContent = state.timeLeft;
-                if (state.timeLeft <= 0) endGame();
-            }, 1000);
-
-            spawnDot();
-        }
-
-        function endGame() {
-            state.active = false;
-            clearInterval(gameTimer);
-            clearTimeout(spawnTimeout);
-            playSound(150, 'sawtooth', 0.5);
-            
-            document.getElementById('end-screen').style.display = 'flex';
-            document.getElementById('final-score').textContent = state.score;
-        }
-
-        function saveLead() {
-            const email = document.getElementById('player-email').value;
-            if(email) {
-                alert("MachinoLabs Elite updated. Welcome to the crew.");
-                document.getElementById('email-section').innerHTML = "<p style='color:var(--cyan)'>ACCESS GRANTED</p>";
+            if (finalScore > highScore) {
+                highScore = finalScore;
+                localStorage.setItem('smak_hi_score', highScore);
+                document.getElementById('hi-score-val').textContent = highScore;
             }
+            
+            if (state.currentPlayer < state.numPlayers) {
+                state.currentPlayer++;
+                document.getElementById('overlay').style.display = 'flex';
+                document.getElementById('lobby-controls').style.display = 'none';
+                document.getElementById('results').style.display = 'block';
+                document.getElementById('winner-text').textContent = `P${state.currentPlayer-1} SCORE: ${finalScore}`;
+                document.getElementById('score-list').textContent = `Ready Player ${state.currentPlayer}?`;
+                document.getElementById('next-player-btn').onclick = startGame;
+            } else { showFinalWinner(); }
         }
+
+        function showFinalWinner() {
+            document.getElementById('overlay').style.display = 'flex';
+            document.getElementById('lobby-controls').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            let max = Math.max(...state.scores);
+            let winIdx = state.scores.indexOf(max) + 1;
+            document.getElementById('winner-text').textContent = `PLAYER ${winIdx} WINS!`;
+            document.getElementById('score-list').textContent = state.scores.map((s, i) => `P${i+1}: ${s}`).join(' | ');
+            document.getElementById('next-player-btn').textContent = "NEW LOBBY";
+            document.getElementById('next-player-btn').onclick = () => location.reload();
+        }
+
+        document.getElementById('pause-btn').addEventListener('click', function() {
+            if(!state.gameActive) return;
+            state.isPaused = !state.isPaused;
+            this.textContent = state.isPaused ? "RESUME" : "PAUSE";
+            if(!state.isPaused) { 
+                unlockAudio(); 
+                spawnDot(); // Resume sniper engine
+            }
+        });
+        
+        document.getElementById('restart-btn').addEventListener('click', () => location.reload());
+        document.getElementById('start-btn').addEventListener('click', startGame);
     </script>
 </body>
 </html>
