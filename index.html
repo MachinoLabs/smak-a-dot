@@ -12,7 +12,22 @@
             --gray: #f0f0f0;
             --pizza-gold: #D4AF37;
         }
+/* --- THE SUN/MOON THEMES --- */
+        body {
+            --bg-color: var(--white);
+            --text-color: #111;
+            --border-color: var(--cyan);
+            --overlay-bg: rgba(255, 255, 255, 0.95);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
 
+        body.dark-mode {
+            --bg-color: #0a0a0a;
+            --text-color: #f0f0f0;
+            --border-color: #333;
+            --overlay-bg: rgba(10, 10, 10, 0.95);
+        }
         body, html {
             margin: 0; padding: 0; height: 100%;
             font-family: 'Arial Black', Gadget, sans-serif;
@@ -30,9 +45,10 @@
             pointer-events: none; z-index: 1; text-transform: uppercase;
         }
 
-        header {
-            padding: 10px 20px; display: flex; justify-content: space-between;
-            align-items: center; background: white; z-index: 10; border-bottom: 3px solid var(--cyan);
+#overlay {
+            position: fixed; inset: 0; background: var(--overlay-bg); color: var(--text-color);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 1000; text-align: center; padding: 20px;
         }
 
         .stats-group { display: flex; align-items: center; gap: 15px; }
@@ -368,6 +384,39 @@
         
         document.getElementById('restart-btn').addEventListener('click', () => location.reload());
         document.getElementById('start-btn').addEventListener('click', startGame);
+
+        document.getElementById('pause-btn').addEventListener('click', function() {
+            if(!state.gameActive) return;
+            state.isPaused = !state.isPaused;
+            this.textContent = state.isPaused ? "RESUME" : "PAUSE";
+            if(!state.isPaused) { 
+                unlockAudio(); 
+                spawnDot(); // Resume sniper engine
+            }
+        });
+        
+        document.getElementById('restart-btn').addEventListener('click', () => location.reload());
+        document.getElementById('start-btn').addEventListener('click', startGame);
+
+        // --- PASTE THIS RIGHT HERE ---
+        // --- SUN / MOON LOGIC ---
+        const themeBtn = document.getElementById('theme-btn');
+        let isDark = false;
+
+        themeBtn.addEventListener('click', () => {
+            isDark = !isDark;
+            document.body.classList.toggle('dark-mode', isDark);
+            
+            if (isDark) {
+                themeBtn.textContent = "☀️ SUN";
+                document.querySelector('.pizza-watermark').style.color = "rgba(212, 175, 55, 0.05)"; // Dim watermark
+            } else {
+                themeBtn.textContent = "🌙 MOON";
+                document.querySelector('.pizza-watermark').style.color = "rgba(212, 175, 55, 0.18)"; // Restore watermark
+            }
+        });
+        // --- END OF PASTE ---
+
     </script>
 </body>
 </html>
