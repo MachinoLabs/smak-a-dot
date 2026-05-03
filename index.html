@@ -195,6 +195,12 @@
         .ml-info-body::-webkit-scrollbar { width: 6px; }
         .ml-info-body::-webkit-scrollbar-track { background: transparent; }
         .ml-info-body::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 10px; }
+        /* --- DESKTOP DOT OVERRIDE --- */
+        @media (min-width: 768px) {
+            .dot { 
+                width: 90px; 
+                height: 90px; 
+            }
     </style>
 </head>
 <body>
@@ -420,8 +426,8 @@
             const oldDot = document.querySelector('.dot');
             if (oldDot) oldDot.remove();
 
-            const x = Math.random() * (board.clientWidth - 80) + 40;
-            const y = Math.random() * (board.clientHeight - 80) + 40;
+            const x = Math.random() * (board.clientWidth - 100) + 50;
+            const y = Math.random() * (board.clientHeight - 100) + 50;
 
             const tierRoll = Math.random();
             let tier = 'tier-cyan', pts = 1, durMultiplier = 1;
